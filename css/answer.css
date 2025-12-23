@@ -1,0 +1,322 @@
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 2rem;
+  background: #f9f9f9;
+  color: #333;
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.result-section {
+  margin-bottom: 2rem;
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.result-section h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+  color: #007acc;
+}
+
+.explanation {
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* カルーセル */
+.carousel-container {
+  position: relative;
+  max-width: 100%;
+  margin: 1rem auto;
+  overflow: hidden;
+}
+
+.carousel-track-container {
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.3s ease-in-out;
+  padding: 0;
+  margin: 0;
+  align-items: center;
+}
+
+.carousel-slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* 画像本体（wrap内でも効く） */
+.carousel-slide img {
+  display: block;
+  margin: 0 auto;
+  max-width: 600px;
+  width: 100%;
+  height: 400px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+.caption {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.carousel-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.carousel-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 122, 204, 0.8);
+  color: white;
+  border: none;
+  padding: 1rem;
+  cursor: pointer;
+  z-index: 10;
+  border-radius: 50%;
+  font-size: 1.2rem;
+}
+
+.carousel-button.prev { left: 10px; }
+.carousel-button.next { right: 10px; }
+
+.carousel-button:hover { background: rgba(0, 95, 163, 0.9); }
+
+.carousel-indicators {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin: 0 6px;
+  background-color: #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.indicator.active { background-color: #007acc; }
+
+/* モバイル対応 */
+@media (max-width: 600px) {
+  body { padding: 1rem; }
+  h1 { font-size: 1.5rem; }
+  .result-section { padding: 0.8rem; }
+  .result-section h2 { font-size: 1.2rem; }
+  .explanation { font-size: 0.95rem; }
+  .caption { font-size: 0.85rem; }
+  .carousel-button { padding: 0.6rem; font-size: 1rem; }
+}
+
+.back-button {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.back-button a {
+  background: #007acc;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  display: inline-block;
+  transition: background 0.3s;
+}
+
+.back-button a:hover { background: #005fa3; }
+
+/* ===== CT Modal ===== */
+.no-scroll { overflow: hidden; }
+
+.ct-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 10000;
+}
+
+.ct-modal.open { display: block; }
+
+.ct-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+}
+
+.ct-modal-panel {
+  position: relative;
+  width: min(980px, 96vw);
+  height: min(92vh, 820px);
+  margin: 4vh auto;
+  background: #f5f5f5;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+}
+
+.ct-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.95);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.ct-loading{
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ct-spinner {
+  width: 54px;
+  height: 54px;
+  border: 6px solid #ccc;
+  border-top-color: #007acc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+.ct-loading-text { font-weight: 700; color: #444; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ★画像とスライダーの間を詰める（ここが今回の要望②） */
+.ct-modal-content {
+  height: 100%;
+  padding: 14px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.ct-title { margin: 4px 0 0; font-size: 1.4rem; }
+
+.ct-viewer{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+}
+
+.ct-viewer img{
+  width: 100% !important;
+  height: auto !important;
+  max-height: 72vh !important;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #000;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.ct-slider{
+  width: min(520px, 92%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -12px;
+}
+
+.ct-arrow{
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ct-slider input[type="range"]{ flex: 1; }
+/* 単発画像モードではスライダーを非表示 */
+.ct-modal[data-mode="single"] .ct-slider {
+  display: none !important;
+}
+@media (max-width: 600px){
+  .ct-modal-panel{
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+  .ct-viewer img{
+    max-height: 74vh !important;
+  }
+}
+
+/* ===== クリック誘導（指マーク）要望① ===== */
+.tap-hint-wrap{
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.tap-hint-wrap .tap-hint{
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0.65;
+  animation: tapHintFloat 1.4s ease-in-out infinite;
+}
+
+.tap-hint-wrap .tap-hint::before{
+  content: "👆";
+  font-size: 22px;
+  line-height: 1;
+}
+
+@keyframes tapHintFloat{
+  0%,100%{ transform: translateY(0); }
+  50%{ transform: translateY(-6px); }
+}
