@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>診断結果</title>
+    <link rel="stylesheet" href="css/answer.css" />
+
+    <!--  公開時：未認証ならログインへ（必要ならコメント解除） -->
+    <!--
+    <script>
+      if (sessionStorage.getItem("authenticated") !== "true") {
+        location.replace("index.html");
+      }
+    </script>
+    -->
+  </head>
+
+  <body>
+    <h1>診断結果</h1>
+
+    <section class="result-section">
+      <h2>■ 診断名</h2>
+      <p>消化管穿孔</p>
+    </section>
+
+    <section class="result-section">
+      <h2>■ Key画像</h2>
+
+      <div class="carousel-container">
+        <div class="carousel-wrapper">
+          <button class="carousel-button prev">❮</button>
+
+          <div class="carousel-track-container">
+            <ul class="carousel-track">
+              <!--  連番として開きたい場合
+                   「フォルダ名/フォルダ名-00001.jpeg」をKey画像に置く -->
+              <li class="carousel-slide">
+                <img src="answer/answer-00001.jpeg" alt="キー画像の説明" />
+                <p class="caption">解説CT</p>
+              </li>
+
+              <!--  単発画像でもクリックで拡大 -->
+              <li class="carousel-slide">
+                <img src="key-images/key1.jpeg" alt="キー画像の説明" />
+                <p class="caption">ワンポイント</p>
+              </li>
+            </ul>
+          </div>
+
+          <button class="carousel-button next">❯</button>
+        </div>
+
+        <div class="carousel-indicators"></div>
+      </div>
+    </section>
+
+    <!-- ===== Modal（JSより上に置く） ===== -->
+    <div class="ct-modal" id="ctModal" aria-hidden="true" data-mode="series">
+      <div class="ct-modal-backdrop" data-close="1"></div>
+
+      <div class="ct-modal-panel" role="dialog" aria-modal="true" aria-label="画像ビューア">
+        <button class="ct-modal-close" type="button" aria-label="閉じる" data-close="1">×</button>
+
+        <div class="ct-loading" id="ctModalLoading" style="display:none;">
+          <div class="ct-spinner"></div>
+          <div class="ct-loading-text">Loading...</div>
+        </div>
+
+        <div class="ct-modal-content" id="ctModalContent" style="display:none;">
+          <h2 class="ct-title" id="ctModalTitle">画像</h2>
+
+          <div class="ct-viewer">
+            <img alt="拡大画像" id="ctModalImage" src="" />
+          </div>
+
+          <div class="ct-slider" id="ctSliderWrap">
+            <button class="ct-arrow" type="button" id="ctPrev">←</button>
+            <input id="ctModalSlider" min="1" step="1" type="range" />
+            <button class="ct-arrow" type="button" id="ctNext">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 問題一覧へ戻る -->
+    <div class="back-button">
+      <a href="https://da-i-go.github.io/STATlms-home/">問題一覧へ戻る</a>
+    </div>
+
+    <!-- ===== カルーセル操作 ===== -->
+    <script>
+      const track = document.querySelector(".carousel-track");
+      const slides = Array.from(track.children);
+      const nextButton = document.querySelector(".carousel-button.next");
+      const prevButton = document.querySelector(".carousel-button.prev");
+      const indicatorsContainer = document.querySelector(".carousel-indicators");
+
+      slides.forEach((_, index) => {
+        const dot = document.createElement("span");
+        dot.classList.add("indicator");
+        if (index === 0) dot.classList.add("active");
+        dot.addEventListener("click", () => {
+          currentIndex = index;
+          updateSlidePosition();
+        });
+        indicatorsContainer.appendChild(dot);
+      });
+
+      const indicators = indicatorsContainer.querySelectorAll(".indicator");
+      let currentIndex = 0;
+
+      function updateSlidePosition() {
+        const slideWidth = slides[0].getBoundingClientRect().width;
+        track.style.transform = "translateX(-" + slideWidth * currentIndex + "px)";
+        indicators.forEach((dot, index) => {
+          dot.classList.toggle("active", index === currentIndex);
+        });
+      }
+
+      nextButton.addEventListener("click", () => {
+        currentIndex = (currentIndex + 1) % slides.length;
+        updateSlidePosition();
+      });
+
+      prevButton.addEventListener("click", () => {
+        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+        updateSlidePosition();
+      });
+
+      let startX = 0;
+      track.addEventListener("touchstart", (e) => {
+        startX = e.touches[0].clientX;
+      });
+
+      track.addEventListener("touchend", (e) => {
+        const endX = e.changedTouches[0].clientX;
+        const diff = endX - startX;
+        if (diff > 50) {
+          currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+          updateSlidePosition();
+        } else if (diff < -50) {
+          currentIndex = (currentIndex + 1) % slides.length;
+          updateSlidePosition();
+        }
+      });
+
+      window.addEventListener("load", updateSlidePosition);
+      window.addEventListener("resize", updateSlidePosition);
+    </script>
+
+    <!-- ===== 画像モーダル（連番/単発 両対応）＋クリック誘導アイコン ===== -->
+    <script>
+      (() => {
+        /**
+         * Key画像に「セット名/セット名-00001.jpeg」を置くと
+         * そのセット名を自動で認識して連番表示（スライダー付き）になる
+         *
+         * 連番セットを増やす場合は、ここに1行追加するだけ。
+         */
+        const imageSets = {
+          answer: { label: "解説CT", totalSlices: 51, padding: 5 },
+          // abd01: { label: "腹部CT", totalSlices: 120, padding: 5 },
+        };
+
+        const modal = document.getElementById("ctModal");
+        const loading = document.getElementById("ctModalLoading");
+        const content = document.getElementById("ctModalContent");
+        const title = document.getElementById("ctModalTitle");
+        const imgEl = document.getElementById("ctModalImage");
+        const sliderWrap = document.getElementById("ctSliderWrap");
+        const slider = document.getElementById("ctModalSlider");
+        const prevBtn = document.getElementById("ctPrev");
+        const nextBtn = document.getElementById("ctNext");
+
+        let currentSet = "";
+        let currentSlice = 1;
+        const imageCache = {};
+
+        function parseSrc(src) {
+          // "answer/answer-00025.jpeg" -> { set:"answer", slice:25 }
+          if (!src) return null;
+          const s = String(src).split("?")[0];
+          const m = s.match(/^([^/]+)\/\1-(\d+)\.(jpe?g|png|webp)$/i);
+          if (!m) return null;
+          return { set: m[1], slice: parseInt(m[2], 10) };
+        }
+
+        function getImageFilename(n, set = currentSet) {
+          const padding = imageSets[set]?.padding ?? 5;
+          const padded = String(n).padStart(padding, "0");
+          return `${set}/${set}-${padded}.jpeg`;
+        }
+
+        function preloadImages(set) {
+          if (!imageSets[set]) return Promise.resolve();
+          if (imageCache[set]) return Promise.resolve();
+
+          const { totalSlices } = imageSets[set];
+          imageCache[set] = [];
+          let loaded = 0;
+
+          return new Promise((resolve) => {
+            for (let i = 1; i <= totalSlices; i++) {
+              const im = new Image();
+              im.onload = im.onerror = () => {
+                loaded++;
+                if (loaded === totalSlices) resolve();
+              };
+              im.src = getImageFilename(i, set);
+              imageCache[set][i] = im;
+            }
+          });
+        }
+
+        function setMode(mode) {
+          modal.dataset.mode = mode; // "series" or "single"
+        }
+
+        function showModal() {
+          modal.classList.add("open");
+          modal.setAttribute("aria-hidden", "false");
+          document.body.classList.add("no-scroll");
+          content.style.display = "flex";
+          loading.style.display = "none";
+        }
+
+        function closeModal() {
+          modal.classList.remove("open");
+          modal.setAttribute("aria-hidden", "true");
+          document.body.classList.remove("no-scroll");
+          imgEl.src = "";
+        }
+
+        function updateSeriesSlice(n) {
+          const total = imageSets[currentSet]?.totalSlices ?? 1;
+          currentSlice = Math.max(1, Math.min(total, n));
+          const cached = imageCache[currentSet]?.[currentSlice];
+          imgEl.src = cached?.src || getImageFilename(currentSlice, currentSet);
+          slider.value = String(currentSlice);
+        }
+
+        function openAsSingle(src) {
+          setMode("single");
+          title.textContent = "画像";
+          sliderWrap.style.display = "none";
+          imgEl.src = src;
+          showModal();
+        }
+
+        function openAsSeries(set, slice, initialSrc) {
+          if (!imageSets[set]) return openAsSingle(initialSrc);
+
+          setMode("series");
+          title.textContent = imageSets[set].label || "連番画像";
+          sliderWrap.style.display = "flex";
+          currentSet = set;
+          currentSlice = slice;
+
+          const total = imageSets[set].totalSlices;
+          slider.min = "1";
+          slider.max = String(total);
+          slider.value = String(slice);
+
+          // 先に表示（ここが「スライダー無い」体感対策）
+          imgEl.src = initialSrc;
+          showModal();
+
+          // 裏でキャッシュ
+          preloadImages(set).catch(() => {});
+        }
+
+        function openFromImgElement(el) {
+          const src = el.getAttribute("src") || "";
+          const parsed = parseSrc(src);
+          if (parsed && imageSets[parsed.set]) openAsSeries(parsed.set, parsed.slice || 1, src);
+          else openAsSingle(src);
+        }
+
+        // 指マークを被せる（クリック誘導）
+        function ensureTapHint(img) {
+          if (img.closest(".tap-hint-wrap")) return;
+
+          const wrap = document.createElement("div");
+          wrap.className = "tap-hint-wrap";
+
+          img.parentNode.insertBefore(wrap, img);
+          wrap.appendChild(img);
+
+          const hint = document.createElement("span");
+          hint.className = "tap-hint";
+          hint.setAttribute("aria-hidden", "true");
+          wrap.appendChild(hint);
+        }
+
+        // Key画像（カルーセル内）の画像だけを対象にする（誤爆防止）
+        document.querySelectorAll(".carousel-slide img").forEach((img) => {
+          img.style.cursor = "zoom-in";
+          ensureTapHint(img);
+          img.addEventListener("click", () => openFromImgElement(img));
+        });
+
+        // close controls
+        modal.addEventListener("click", (e) => {
+          if (e.target && e.target.dataset && e.target.dataset.close === "1") closeModal();
+        });
+
+        window.addEventListener("keydown", (e) => {
+          if (!modal.classList.contains("open")) return;
+          if (e.key === "Escape") closeModal();
+
+          if (modal.dataset.mode === "series") {
+            if (e.key === "ArrowLeft") updateSeriesSlice(currentSlice - 1);
+            if (e.key === "ArrowRight") updateSeriesSlice(currentSlice + 1);
+          }
+        });
+
+        slider.addEventListener("input", () => {
+          if (modal.dataset.mode !== "series") return;
+          updateSeriesSlice(parseInt(slider.value, 10));
+        });
+
+        prevBtn.addEventListener("click", () => {
+          if (modal.dataset.mode !== "series") return;
+          updateSeriesSlice(currentSlice - 1);
+        });
+
+        nextBtn.addEventListener("click", () => {
+          if (modal.dataset.mode !== "series") return;
+          updateSeriesSlice(currentSlice + 1);
+        });
+      })();
+    </script>
+
+    <!-- GAS：解答完了の記録 -->
+    <script>
+      (function () {
+        if (sessionStorage.getItem("authenticated") !== "true") return;
+
+        const API =
+          "https://script.google.com/macros/s/AKfycbx8b_17MyBUxJtJhJ21KFSfJguUBSGKHBg-WjLHHylbqho1pFjZKIMjvqlMWzUWNFcC/exec";
+        const uid = sessionStorage.getItem("uid") || "";
+        const problemId = "4-3"; // ★他の問題で流用するときはここを変更
+        const page = location.pathname + location.search;
+
+        fetch(API + "?route=done", {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ uid, problemId, page }),
+        }).catch(console.warn);
+      })();
+    </script>
+  </body>
+</html>
