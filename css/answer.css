@@ -323,54 +323,61 @@ h1 {
 
 
 
-/* ===== FIX: slider disappears / hidden (series mode) =====
-   Cause: image becomes too tall (width:100% + max-height:72vh) and pushes slider out of the panel.
-   Fix: make modal layout 3 rows (title / viewer / slider) and constrain image to viewer height.
-*/
+/* ===== FIX: CT modal slider always visible (PC & iPhone Safari) ===== */
+
+/* 1) モーダル内を「タイトル / 画像 / スライダー」の3段に固定 */
 .ct-modal-content{
   display: grid !important;
-  grid-template-rows: auto 1fr auto !important;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px !important;
+  gap: 8px;
   height: 100%;
-  padding: 14px 14px calc(12px + env(safe-area-inset-bottom)) !important;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
 }
 
+/* 2) 画像は“ビューア領域”の中に収まるようにする（vhベースをやめる） */
 .ct-viewer{
-  width: 100%;
-  min-height: 0;        /* allow shrinking inside grid */
-  display: flex;
-  justify-content: center;
+  min-height: 0;
   align-items: center;
-  overflow: hidden;     /* keep image inside */
 }
 
 .ct-viewer img{
-  width: auto !important;      /* ← IMPORTANT: don't force width 100% */
-  height: auto !important;
+  width: auto !important;          /* ←ここ重要：100%固定を解除 */
   max-width: 100% !important;
-  max-height: 100% !important; /* fit within viewer (not viewport) */
-  object-fit: contain;
+  max-height: 100% !important;     /* viewer内で収まる */
 }
 
+/* 3) スライダーは常に見える位置に（下に押し出されても消えない） */
 .ct-slider{
-  flex: 0 0 auto;
-  width: min(720px, 94%) !important;
   margin-top: 0 !important;
-  padding-bottom: env(safe-area-inset-bottom);
+  position: sticky;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  z-index: 3;
+
+  background: rgba(245,245,245,0.92);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 999px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.18);
 }
 
-/* touch-friendly */
-.ct-slider input[type="range"]{
-  height: 32px;
-}
-
-/* Mobile: make the panel use dynamic viewport height so slider isn't hidden by Safari UI */
+/* 4) iPhone Safari対策：vhではなくdvh、余白ゼロで全画面 */
 @media (max-width: 600px){
   .ct-modal-panel{
+    width: 100vw !important;
     height: 100dvh !important;
-    width: 100vw;
-    margin: 0;
-    border-radius: 0;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .ct-slider{
+    width: min(740px, 96%) !important;
+  }
+
+  .ct-slider input[type="range"]{
+    height: 34px;
   }
 }
+
+/* ===== end ===== */
