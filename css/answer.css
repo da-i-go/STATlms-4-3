@@ -221,14 +221,14 @@ h1 {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ★画像とスライダーの間を詰める（ここが今回の要望②） */
+/* 画像とスライダーの間を詰める */
 .ct-modal-content {
   height: 100%;
   padding: 14px 14px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
 }
 
 .ct-title { margin: 4px 0 0; font-size: 1.4rem; }
@@ -321,75 +321,56 @@ h1 {
   50%{ transform: translateY(-6px); }
 }
 
-/* ===== CT Modal controls fix (PC: 操作しやすい位置 / iPhone: 下に隠れない) ===== */
-.ct-modal-panel{
-  /* スライダー（操作部）の高さの目安。必要なら 64〜88px で調整 */
-  --ct-controls-h: 76px;
-}
 
-/* iOS Safariのアドレスバー伸縮でも高さが安定するように */
-.ct-modal-panel{
-  height: min(92dvh, 820px);
-}
 
-/* 画像の下に操作部の“置き場”を確保（操作部が下に押し出されない） */
+/* ===== FIX: slider disappears / hidden (series mode) =====
+   Cause: image becomes too tall (width:100% + max-height:72vh) and pushes slider out of the panel.
+   Fix: make modal layout 3 rows (title / viewer / slider) and constrain image to viewer height.
+*/
 .ct-modal-content{
-  position: relative;
-  padding-bottom: calc(10px + var(--ct-controls-h) + env(safe-area-inset-bottom));
+  display: grid !important;
+  grid-template-rows: auto 1fr auto !important;
+  align-items: center;
+  gap: 10px !important;
+  height: 100%;
+  padding: 14px 14px calc(12px + env(safe-area-inset-bottom)) !important;
 }
 
-/* 画像エリアの下側に余白を作って、操作部が画像を隠し過ぎないように */
 .ct-viewer{
-  padding-bottom: calc(var(--ct-controls-h) - 18px);
-  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;        /* allow shrinking inside grid */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;     /* keep image inside */
 }
 
-/* 既存の vh 制限を外して、ビューア領域に“収まる”最大化にする */
 .ct-viewer img{
-  max-height: 100% !important;
+  width: auto !important;      /* ← IMPORTANT: don't force width 100% */
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important; /* fit within viewer (not viewport) */
+  object-fit: contain;
 }
 
-/* 操作部は常に下端付近へ固定（見失わない＆黒背景でも埋もれない） */
 .ct-slider{
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(8px + env(safe-area-inset-bottom));
-  margin-top: 0;
-  width: min(720px, 94%);
-  z-index: 3;
-
-  background: rgba(245,245,245,0.92);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 999px;
-  padding: 10px 12px;
-  box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+  flex: 0 0 auto;
+  width: min(720px, 94%) !important;
+  margin-top: 0 !important;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* タッチしやすいサイズ（特にiPhone） */
+/* touch-friendly */
 .ct-slider input[type="range"]{
   height: 32px;
 }
 
-/* スマホ全画面では “URLバー分” を含めて安全に表示 */
+/* Mobile: make the panel use dynamic viewport height so slider isn't hidden by Safari UI */
 @media (max-width: 600px){
   .ct-modal-panel{
+    height: 100dvh !important;
     width: 100vw;
-    height: 100dvh;
     margin: 0;
     border-radius: 0;
-  }
-
-  .ct-modal-content{
-    padding-top: 12px;
-    padding-bottom: calc(12px + var(--ct-controls-h) + env(safe-area-inset-bottom));
-  }
-
-  .ct-title{ font-size: 1.2rem; }
-
-  .ct-arrow{
-    width: 44px;
-    height: 44px;
   }
 }
