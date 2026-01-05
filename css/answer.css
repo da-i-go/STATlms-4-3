@@ -1,3 +1,4 @@
+/* ===== Base ===== */
 body {
   font-family: sans-serif;
   margin: 0;
@@ -31,7 +32,7 @@ h1 {
   font-size: 1rem;
 }
 
-/* カルーセル */
+/* ===== Carousel ===== */
 .carousel-container {
   position: relative;
   max-width: 100%;
@@ -39,7 +40,15 @@ h1 {
   overflow: hidden;
 }
 
+.carousel-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
 .carousel-track-container {
+  width: 100%;
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -47,6 +56,7 @@ h1 {
 }
 
 .carousel-track {
+  list-style: none;
   display: flex;
   transition: transform 0.3s ease-in-out;
   padding: 0;
@@ -64,29 +74,24 @@ h1 {
   text-align: center;
 }
 
-/* 画像本体（wrap内でも効く） */
+/* ★重要：スマホ縦伸び対策（固定heightをやめる） */
 .carousel-slide img {
   display: block;
   margin: 0 auto;
   max-width: 600px;
   width: 100%;
-  height: 400px;
+  height: auto;              /* ←固定やめる */
+  max-height: 70vh;          /* ←上限だけ */
   object-fit: contain;
   border-radius: 8px;
-  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  background: #000;          /* CTっぽい画像は背景があると締まる */
 }
 
 .caption {
   margin-top: 0.5rem;
   font-size: 0.95rem;
   color: #555;
-}
-
-.carousel-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
 }
 
 .carousel-button {
@@ -126,17 +131,7 @@ h1 {
 
 .indicator.active { background-color: #007acc; }
 
-/* モバイル対応 */
-@media (max-width: 600px) {
-  body { padding: 1rem; }
-  h1 { font-size: 1.5rem; }
-  .result-section { padding: 0.8rem; }
-  .result-section h2 { font-size: 1.2rem; }
-  .explanation { font-size: 0.95rem; }
-  .caption { font-size: 0.85rem; }
-  .carousel-button { padding: 0.6rem; font-size: 1rem; }
-}
-
+/* ===== Back button ===== */
 .back-button {
   text-align: center;
   margin-top: 2rem;
@@ -170,7 +165,7 @@ h1 {
 .ct-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
 }
 
 .ct-modal-panel {
@@ -181,31 +176,32 @@ h1 {
   background: #f5f5f5;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
 }
 
 .ct-modal-close {
   position: absolute;
   top: 10px;
   right: 12px;
-  z-index: 2;
+  z-index: 5;
   width: 40px;
   height: 40px;
   border: none;
   border-radius: 999px;
-  background: rgba(255,255,255,0.95);
+  background: rgba(255, 255, 255, 0.95);
   font-size: 22px;
   cursor: pointer;
 }
 
-.ct-loading{
+.ct-loading {
   position: absolute;
   inset: 0;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.9);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  z-index: 4;
 }
 
 .ct-spinner {
@@ -218,48 +214,61 @@ h1 {
   margin-bottom: 10px;
 }
 .ct-loading-text { font-weight: 700; color: #444; }
-
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* 画像とスライダーの間を詰める */
+/* ★ここが安定の肝：gridで「タイトル / 画像 / スライダー」固定 */
 .ct-modal-content {
   height: 100%;
-  padding: 14px 14px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
+  padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  gap: 10px;
 }
 
-.ct-title { margin: 4px 0 0; font-size: 1.4rem; }
+.ct-title {
+  margin: 6px 0 0;
+  font-size: 1.4rem;
+}
 
-.ct-viewer{
+.ct-viewer {
   width: 100%;
+  min-height: 0;
   display: flex;
   justify-content: center;
-  flex: 1;
-  min-height: 0;
+  align-items: center;
 }
 
-.ct-viewer img{
-  width: 100% !important;
-  height: auto !important;
-  max-height: 72vh !important;
+.ct-viewer img {
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
   border-radius: 12px;
   background: #000;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-.ct-slider{
-  width: min(520px, 92%);
+/* スライダーは常に見える（被りにくい） */
+.ct-slider {
+  width: min(560px, 92%);
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: -12px;
+  gap: 10px;
+
+  position: sticky;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  z-index: 3;
+
+  background: rgba(245, 245, 245, 0.92);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
 }
 
-.ct-arrow{
+.ct-arrow {
   width: 36px;
   height: 36px;
   border-radius: 999px;
@@ -268,25 +277,15 @@ h1 {
   cursor: pointer;
 }
 
-.ct-slider input[type="range"]{ flex: 1; }
-/* 単発画像モードではスライダーを非表示 */
+.ct-slider input[type="range"] { flex: 1; }
+
+/* 単発画像モードではスライダー非表示 */
 .ct-modal[data-mode="single"] .ct-slider {
   display: none !important;
 }
-@media (max-width: 600px){
-  .ct-modal-panel{
-    width: 100vw;
-    height: 100vh;
-    margin: 0;
-    border-radius: 0;
-  }
-  .ct-viewer img{
-    max-height: 74vh !important;
-  }
-}
 
-/* ===== クリック誘導（指マーク）要望① ===== */
-.tap-hint-wrap{
+/* ===== Tap hint ===== */
+.tap-hint-wrap {
   position: relative;
   display: block;
   width: 100%;
@@ -294,14 +293,14 @@ h1 {
   margin: 0 auto;
 }
 
-.tap-hint-wrap .tap-hint{
+.tap-hint-wrap .tap-hint {
   position: absolute;
   right: 10px;
   bottom: 10px;
   width: 44px;
   height: 44px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.55);
+  background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(2px);
   display: grid;
   place-items: center;
@@ -310,74 +309,44 @@ h1 {
   animation: tapHintFloat 1.4s ease-in-out infinite;
 }
 
-.tap-hint-wrap .tap-hint::before{
+.tap-hint-wrap .tap-hint::before {
   content: "👆";
   font-size: 22px;
   line-height: 1;
 }
 
-@keyframes tapHintFloat{
-  0%,100%{ transform: translateY(0); }
-  50%{ transform: translateY(-6px); }
+@keyframes tapHintFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
+/* ===== Mobile ===== */
+@media (max-width: 600px) {
+  body { padding: 1rem; }
+  h1 { font-size: 1.5rem; }
+  .result-section { padding: 0.8rem; }
+  .result-section h2 { font-size: 1.2rem; }
+  .explanation { font-size: 0.95rem; }
+  .caption { font-size: 0.85rem; }
+  .carousel-button { padding: 0.6rem; font-size: 1rem; }
 
-
-/* ===== FIX: CT modal slider always visible (PC & iPhone Safari) ===== */
-
-/* 1) モーダル内を「タイトル / 画像 / スライダー」の3段に固定 */
-.ct-modal-content{
-  display: grid !important;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  height: 100%;
-  padding-bottom: calc(14px + env(safe-area-inset-bottom));
-}
-
-/* 2) 画像は“ビューア領域”の中に収まるようにする（vhベースをやめる） */
-.ct-viewer{
-  min-height: 0;
-  align-items: center;
-}
-
-.ct-viewer img{
-  width: auto !important;          /* ←ここ重要：100%固定を解除 */
-  max-width: 100% !important;
-  max-height: 100% !important;     /* viewer内で収まる */
-}
-
-/* 3) スライダーは常に見える位置に（下に押し出されても消えない） */
-.ct-slider{
-  margin-top: 0 !important;
-  position: sticky;
-  bottom: calc(10px + env(safe-area-inset-bottom));
-  z-index: 3;
-
-  background: rgba(245,245,245,0.92);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 999px;
-  padding: 10px 12px;
-  box-shadow: 0 8px 22px rgba(0,0,0,0.18);
-}
-
-/* 4) iPhone Safari対策：vhではなくdvh、余白ゼロで全画面 */
-@media (max-width: 600px){
-  .ct-modal-panel{
-    width: 100vw !important;
-    height: 100dvh !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
+  .carousel-slide img {
+    max-height: 55vh; /* スマホは少し低めで安定 */
   }
 
-  .ct-slider{
-    width: min(740px, 96%) !important;
+  /* iPhone Safari対策：dvhで全画面を安定 */
+  .ct-modal-panel {
+    width: 100vw;
+    height: 100dvh;
+    margin: 0;
+    border-radius: 0;
   }
 
-  .ct-slider input[type="range"]{
+  .ct-slider {
+    width: min(740px, 96%);
+  }
+
+  .ct-slider input[type="range"] {
     height: 34px;
   }
 }
-
-/* ===== end ===== */
