@@ -52,7 +52,7 @@
       </div>
     </section>
 
-    <!-- ===== CT Modal ===== -->
+    <!-- ===== CT Modal（連番/単発 両対応） ===== -->
     <div class="ct-modal" id="ctModal" aria-hidden="true" data-mode="series">
       <div class="ct-modal-backdrop" data-close="1"></div>
 
@@ -150,10 +150,6 @@
     <!-- ===== 画像モーダル（連番/単発）＋タップ誘導 ===== -->
     <script>
       (() => {
-        /**
-         * 「セット名/セット名-00001.jpeg」をKey画像に置くと
-         * セット名を自動認識して連番表示（スライダー付き）
-         */
         const imageSets = {
           answer: { label: "解説CT", totalSlices: 51, padding: 5 },
           // abd01: { label: "腹部CT", totalSlices: 120, padding: 5 },
@@ -173,7 +169,6 @@
         const imageCache = {};
 
         function parseSrc(src) {
-          // "answer/answer-00025.jpeg" -> { set:"answer", slice:25 }
           if (!src) return null;
           const s = String(src).split("?")[0];
           const m = s.match(/^([^/]+)\/\1-(\d+)\.(jpe?g|png|webp)$/i);
@@ -209,16 +204,16 @@
         }
 
         function setMode(mode) {
-          modal.dataset.mode = mode; // "series" or "single"
+          modal.dataset.mode = mode;
         }
 
+        // ✅ display:flex をやめて、CSS（grid）に任せる
         function showModal() {
           modal.classList.add("open");
           modal.setAttribute("aria-hidden", "false");
           document.body.classList.add("no-scroll");
 
-          // ★ここ重要：displayをJSで強制しない（CSSのgridに任せる）
-          content.style.display = "";
+          content.style.display = "grid"; // ←これで確実に3段固定
           loading.style.display = "none";
         }
 
@@ -257,11 +252,9 @@
           slider.max = String(total);
           slider.value = String(slice);
 
-          // 先に表示（「スライダー無い」体感対策）
           imgEl.src = initialSrc;
           showModal();
 
-          // 裏でキャッシュ（失敗しても表示は継続）
           preloadImages(set).catch(() => {});
         }
 
@@ -288,14 +281,12 @@
           wrap.appendChild(hint);
         }
 
-        // Key画像（カルーセル内）の画像だけ対象
         document.querySelectorAll(".carousel-slide img").forEach((img) => {
           img.style.cursor = "zoom-in";
           ensureTapHint(img);
           img.addEventListener("click", () => openFromImgElement(img));
         });
 
-        // close controls
         modal.addEventListener("click", (e) => {
           if (e.target && e.target.dataset && e.target.dataset.close === "1") closeModal();
         });
@@ -335,7 +326,7 @@
         const API =
           "https://script.google.com/macros/s/AKfycbx8b_17MyBUxJtJhJ21KFSfJguUBSGKHBg-WjLHHylbqho1pFjZKIMjvqlMWzUWNFcC/exec";
         const uid = sessionStorage.getItem("uid") || "";
-        const problemId = "4-3"; // ★流用時はここだけ変更
+        const problemId = "4-3";
         const page = location.pathname + location.search;
 
         fetch(API + "?route=done", {
