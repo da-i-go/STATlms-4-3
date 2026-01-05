@@ -12,7 +12,6 @@
         location.replace("index.html");
       }
     </script>
-
   </head>
 
   <body>
@@ -28,55 +27,54 @@
 
       <div class="carousel-container">
         <div class="carousel-wrapper">
-          <button class="carousel-button prev">❮</button>
+          <button class="carousel-button prev" type="button" aria-label="前へ">❮</button>
 
           <div class="carousel-track-container">
             <ul class="carousel-track">
-              <!--  連番として開きたい場合
-                   「フォルダ名/フォルダ名-00001.jpeg」をKey画像に置く -->
+              <!-- 連番として開きたい場合：「セット名/セット名-00001.jpeg」を置く -->
               <li class="carousel-slide">
-                <img src="answer/answer-00001.jpeg" alt="キー画像の説明" />
+                <img src="answer/answer-00001.jpeg" alt="解説CT" />
                 <p class="caption">解説CT</p>
               </li>
 
-              <!--  単発画像でもクリックで拡大 -->
+              <!-- 単発画像：クリックで拡大（スライダー無し） -->
               <li class="carousel-slide">
-                <img src="key-images/key1.jpeg" alt="キー画像の説明" />
+                <img src="key-images/key1.jpeg" alt="ワンポイント" />
                 <p class="caption">ワンポイント</p>
               </li>
             </ul>
           </div>
 
-          <button class="carousel-button next">❯</button>
+          <button class="carousel-button next" type="button" aria-label="次へ">❯</button>
         </div>
 
-        <div class="carousel-indicators"></div>
+        <div class="carousel-indicators" aria-label="スライド選択"></div>
       </div>
     </section>
 
-    <!-- ===== Modal（JSより上に置く） ===== -->
+    <!-- ===== CT Modal ===== -->
     <div class="ct-modal" id="ctModal" aria-hidden="true" data-mode="series">
       <div class="ct-modal-backdrop" data-close="1"></div>
 
       <div class="ct-modal-panel" role="dialog" aria-modal="true" aria-label="画像ビューア">
         <button class="ct-modal-close" type="button" aria-label="閉じる" data-close="1">×</button>
 
-        <div class="ct-loading" id="ctModalLoading" style="display:none;">
+        <div class="ct-loading" id="ctModalLoading" style="display: none">
           <div class="ct-spinner"></div>
           <div class="ct-loading-text">Loading...</div>
         </div>
 
-        <div class="ct-modal-content" id="ctModalContent" style="display:none;">
-          <h2 class="ct-title" id="ctModalTitle">ワンポイント</h2>
+        <div class="ct-modal-content" id="ctModalContent">
+          <h2 class="ct-title" id="ctModalTitle">画像</h2>
 
           <div class="ct-viewer">
             <img alt="拡大画像" id="ctModalImage" src="" />
           </div>
 
           <div class="ct-slider" id="ctSliderWrap">
-            <button class="ct-arrow" type="button" id="ctPrev">←</button>
-            <input id="ctModalSlider" min="1" step="1" type="range" />
-            <button class="ct-arrow" type="button" id="ctNext">→</button>
+            <button class="ct-arrow" type="button" id="ctPrev" aria-label="前のスライス">←</button>
+            <input id="ctModalSlider" min="1" step="1" type="range" aria-label="スライス" />
+            <button class="ct-arrow" type="button" id="ctNext" aria-label="次のスライス">→</button>
           </div>
         </div>
       </div>
@@ -127,6 +125,7 @@
         updateSlidePosition();
       });
 
+      // フリック対応
       let startX = 0;
       track.addEventListener("touchstart", (e) => {
         startX = e.touches[0].clientX;
@@ -148,14 +147,12 @@
       window.addEventListener("resize", updateSlidePosition);
     </script>
 
-    <!-- ===== 画像モーダル（連番/単発 両対応）＋クリック誘導アイコン ===== -->
+    <!-- ===== 画像モーダル（連番/単発）＋タップ誘導 ===== -->
     <script>
       (() => {
         /**
-         * Key画像に「セット名/セット名-00001.jpeg」を置くと
-         * そのセット名を自動で認識して連番表示（スライダー付き）になる
-         *
-         * 連番セットを増やす場合は、ここに1行追加するだけ。
+         * 「セット名/セット名-00001.jpeg」をKey画像に置くと
+         * セット名を自動認識して連番表示（スライダー付き）
          */
         const imageSets = {
           answer: { label: "解説CT", totalSlices: 51, padding: 5 },
@@ -167,7 +164,6 @@
         const content = document.getElementById("ctModalContent");
         const title = document.getElementById("ctModalTitle");
         const imgEl = document.getElementById("ctModalImage");
-        const sliderWrap = document.getElementById("ctSliderWrap");
         const slider = document.getElementById("ctModalSlider");
         const prevBtn = document.getElementById("ctPrev");
         const nextBtn = document.getElementById("ctNext");
@@ -220,7 +216,9 @@
           modal.classList.add("open");
           modal.setAttribute("aria-hidden", "false");
           document.body.classList.add("no-scroll");
-          content.style.display = "flex";
+
+          // ★ここ重要：displayをJSで強制しない（CSSのgridに任せる）
+          content.style.display = "";
           loading.style.display = "none";
         }
 
@@ -239,10 +237,9 @@
           slider.value = String(currentSlice);
         }
 
-        function openAsSingle(src) {
+        function openAsSingle(src, alt) {
           setMode("single");
-          title.textContent = "画像";
-          sliderWrap.style.display = "none";
+          title.textContent = alt || "画像";
           imgEl.src = src;
           showModal();
         }
@@ -252,7 +249,6 @@
 
           setMode("series");
           title.textContent = imageSets[set].label || "連番画像";
-          sliderWrap.style.display = "flex";
           currentSet = set;
           currentSlice = slice;
 
@@ -261,28 +257,28 @@
           slider.max = String(total);
           slider.value = String(slice);
 
-          // 先に表示（ここが「スライダー無い」体感対策）
+          // 先に表示（「スライダー無い」体感対策）
           imgEl.src = initialSrc;
           showModal();
 
-          // 裏でキャッシュ
+          // 裏でキャッシュ（失敗しても表示は継続）
           preloadImages(set).catch(() => {});
         }
 
         function openFromImgElement(el) {
           const src = el.getAttribute("src") || "";
+          const alt = el.getAttribute("alt") || "";
           const parsed = parseSrc(src);
           if (parsed && imageSets[parsed.set]) openAsSeries(parsed.set, parsed.slice || 1, src);
-          else openAsSingle(src);
+          else openAsSingle(src, alt);
         }
 
-        // 指マークを被せる（クリック誘導）
+        // クリック誘導（指マーク）
         function ensureTapHint(img) {
           if (img.closest(".tap-hint-wrap")) return;
 
           const wrap = document.createElement("div");
           wrap.className = "tap-hint-wrap";
-
           img.parentNode.insertBefore(wrap, img);
           wrap.appendChild(img);
 
@@ -292,7 +288,7 @@
           wrap.appendChild(hint);
         }
 
-        // Key画像（カルーセル内）の画像だけを対象にする（誤爆防止）
+        // Key画像（カルーセル内）の画像だけ対象
         document.querySelectorAll(".carousel-slide img").forEach((img) => {
           img.style.cursor = "zoom-in";
           ensureTapHint(img);
@@ -339,7 +335,7 @@
         const API =
           "https://script.google.com/macros/s/AKfycbx8b_17MyBUxJtJhJ21KFSfJguUBSGKHBg-WjLHHylbqho1pFjZKIMjvqlMWzUWNFcC/exec";
         const uid = sessionStorage.getItem("uid") || "";
-        const problemId = "4-3"; // ★他の問題で流用するときはここを変更
+        const problemId = "4-3"; // ★流用時はここだけ変更
         const page = location.pathname + location.search;
 
         fetch(API + "?route=done", {
