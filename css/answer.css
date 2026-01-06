@@ -66,7 +66,7 @@ h1 {
   text-align: center;
 }
 
-/*  スマホ縦伸び対策：height固定をやめる */
+/* スマホ縦伸び対策 */
 .carousel-slide img {
   display: block;
   margin: 0 auto;
@@ -214,7 +214,7 @@ h1 {
 .ct-loading-text { font-weight: 700; color: #444; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/*  3段固定（タイトル / 画像 / スライダー） */
+/* 3段固定（タイトル / 画像 / スライダー） */
 .ct-modal-content {
   height: 100%;
   padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
@@ -234,7 +234,6 @@ h1 {
   align-items: center;
 }
 
-/*  viewer内に収める（vhで縛らない） */
 .ct-viewer img {
   width: auto;
   max-width: 100%;
@@ -245,7 +244,7 @@ h1 {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-/*  sticky解除：被りゼロ */
+/* 被りゼロ */
 .ct-slider {
   width: min(560px, 92%);
   display: flex;
@@ -281,7 +280,7 @@ h1 {
   display: none !important;
 }
 
-/* ===== タップ誘導（指マーク） ===== */
+/* ===== 拡大ヒント（見切れないデザイン） ===== */
 .tap-hint-wrap {
   position: relative;
   display: block;
@@ -292,24 +291,52 @@ h1 {
 
 .tap-hint-wrap .tap-hint {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
-  width: 44px;
-  height: 44px;
+  right: 12px;
+  bottom: 12px;
+
+  width: auto;
+  height: auto;
+  min-height: 34px;
+  padding: 8px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(2px);
-  display: grid;
-  place-items: center;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+
   pointer-events: none;
-  opacity: 0.65;
+  opacity: 0.85;
   animation: tapHintFloat 1.4s ease-in-out infinite;
 }
 
 .tap-hint-wrap .tap-hint::before {
-  content: "🔍ここをクリック";
-  font-size: 30px;
+  content: "🔍";
+  font-size: 18px;
   line-height: 1;
+}
+
+.tap-hint-wrap .tap-hint::after {
+  content: "クリックで拡大";
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* タッチ端末は文言を「タップで拡大」に */
+@media (hover: none) {
+  .tap-hint-wrap .tap-hint::after { content: "タップで拡大"; }
+}
+
+/* クリックしたらフェードアウト（JSでclass付与） */
+.tap-hint.hide {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 250ms ease, transform 250ms ease;
+  animation: none;
 }
 
 @keyframes tapHintFloat {
