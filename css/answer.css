@@ -66,7 +66,7 @@ h1 {
   text-align: center;
 }
 
-/* スマホ縦伸び対策 */
+/*  スマホ縦伸び対策：height固定をやめる */
 .carousel-slide img {
   display: block;
   margin: 0 auto;
@@ -214,7 +214,7 @@ h1 {
 .ct-loading-text { font-weight: 700; color: #444; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* 3段固定（タイトル / 画像 / スライダー） */
+/*  3段固定（タイトル / 画像 / スライダー） */
 .ct-modal-content {
   height: 100%;
   padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
@@ -234,6 +234,7 @@ h1 {
   align-items: center;
 }
 
+/*  viewer内に収める（vhで縛らない） */
 .ct-viewer img {
   width: auto;
   max-width: 100%;
@@ -244,7 +245,7 @@ h1 {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-/* 被りゼロ */
+/*  sticky解除：被りゼロ */
 .ct-slider {
   width: min(560px, 92%);
   display: flex;
@@ -362,5 +363,27 @@ h1 {
     height: 100dvh;
     margin: 0;
     border-radius: 0;
+  }
+
+  /* ===== ここから追加：画像とスライダーの距離を詰める ===== */
+  .ct-modal-content {
+    gap: 8px; /* 14px → 8px */
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+  }
+
+  /* 画像を中央寄せ→下寄せにして、スライダーに近づける */
+  .ct-viewer {
+    align-items: flex-end;
+  }
+
+  /* スライダー周りも少し詰める */
+  .ct-slider {
+    margin: 0 auto 6px; /* 0 auto 10px → 6px */
+    padding: 8px 10px;  /* 10px 12px → 少し小さく */
+  }
+
+  /* タイトルも少し詰めたい場合（任意） */
+  .ct-title {
+    margin-top: 2px;
   }
 }
