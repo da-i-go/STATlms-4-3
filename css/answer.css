@@ -346,7 +346,7 @@ h1 {
 }
 
 .tap-hint-wrap .tap-hint::after {
-  content: "クリックで拡大";
+  content: "クリックで解説CT";
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
@@ -356,7 +356,7 @@ h1 {
 /* タッチ端末は文言を「タップで拡大」に */
 @media (hover: none) {
   .tap-hint-wrap .tap-hint::after {
-    content: "タップで拡大";
+    content: "タップで解説CT";
   }
 }
 
