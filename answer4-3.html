@@ -147,7 +147,7 @@
       window.addEventListener("resize", updateSlidePosition);
     </script>
 
-    <!-- ===== 画像モーダル（連番/単発）＋タップ誘導 ===== -->
+    <!-- ===== 画像モーダル（連番/単発）＋クリック誘導 ===== -->
     <script>
       (() => {
         const imageSets = {
@@ -207,13 +207,12 @@
           modal.dataset.mode = mode;
         }
 
-        // ✅ display:flex をやめて、CSS（grid）に任せる
         function showModal() {
           modal.classList.add("open");
           modal.setAttribute("aria-hidden", "false");
           document.body.classList.add("no-scroll");
 
-          content.style.display = "grid"; // ←これで確実に3段固定
+          content.style.display = "grid";
           loading.style.display = "none";
         }
 
@@ -266,8 +265,11 @@
           else openAsSingle(src, alt);
         }
 
-        // クリック誘導（指マーク）
+        // ===== クリック誘導（拡大ヒント） =====
         function ensureTapHint(img) {
+          // 一度見たら以後は表示しない
+          if (sessionStorage.getItem("seenZoomHint") === "1") return;
+
           if (img.closest(".tap-hint-wrap")) return;
 
           const wrap = document.createElement("div");
@@ -281,10 +283,19 @@
           wrap.appendChild(hint);
         }
 
+        function hideAllHints() {
+          document.querySelectorAll(".tap-hint").forEach((el) => el.classList.add("hide"));
+        }
+
         document.querySelectorAll(".carousel-slide img").forEach((img) => {
           img.style.cursor = "zoom-in";
           ensureTapHint(img);
-          img.addEventListener("click", () => openFromImgElement(img));
+
+          img.addEventListener("click", () => {
+            sessionStorage.setItem("seenZoomHint", "1");
+            hideAllHints();
+            openFromImgElement(img);
+          });
         });
 
         modal.addEventListener("click", (e) => {
