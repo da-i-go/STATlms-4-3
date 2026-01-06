@@ -307,8 +307,8 @@ h1 {
 }
 
 .tap-hint-wrap .tap-hint::before {
-  content: "🔍";
-  font-size: 27px;
+  content: "🔍ここをクリック";
+  font-size: 30px;
   line-height: 1;
 }
 
